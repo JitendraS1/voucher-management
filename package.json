@@ -9,6 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.52.1",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
     "next": "^14.2.30",
     "react": "^18",
     "react-dom": "^18"
@@ -22,5 +27,13 @@
   "main": "next.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JitendraS1/voucher-management.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JitendraS1/voucher-management/issues"
+  },
+  "homepage": "https://github.com/JitendraS1/voucher-management#readme"
 }
