@@ -15,7 +15,7 @@ function PrintVoucherComponent({ voucherData, onBack }) {
         {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img
-            src="https://ucarecdn.com/326c2bf5-cf90-469a-98fd-707a7a29595f/-/format/auto/"
+            src="https://ik.imagekit.io/bhadoriyaji/fav%20icon.png?updatedAt=1749496082614"
             alt="Nestoria Watermark"
             className="w-74 h-64 opacity-10"
           />
@@ -25,7 +25,7 @@ function PrintVoucherComponent({ voucherData, onBack }) {
         <div className="flex justify-between items-start mb-6 relative z-10">
           <div className="flex items-center">
             <img
-              src="https://ucarecdn.com/e6127b56-136c-4dd7-902a-e74491326b5c/-/format/auto/"
+              src="https://ik.imagekit.io/bhadoriyaji/nestoria-logo-new.png?updatedAt=1753868377250"
               alt="Nestoria Group Logo"
               className="w-20 h-20 mr-4"
             />
@@ -197,7 +197,7 @@ function PrintVoucherComponent({ voucherData, onBack }) {
           }
 
           @page {
-            size: A4 landscape;
+            size: A5 landscape;
             margin: 0.5in;
           }
 
