@@ -27,6 +27,43 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+
+# backend env files
+mongodb-atlas-backend/.env
+firebase-backend/.env
+superbase-backend/.env
+
+# temp files
+*.tmp
+*.temp
+
+# log files
+*.log
+logs/
+
+# database files
+*.db
+*.sqlite
+
+# backup files
+*.bak
+*.backup
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 
 # vercel
 .vercel

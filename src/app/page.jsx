@@ -1,624 +1,740 @@
 "use client";
 import React from "react";
-import axios from 'axios'; // Import axios for making HTTP requests
+import axios from "axios";
 
-// Define the base URL for your Render API, without the specific resource path
-const API_ROOT_URL = 'https://nestoria-voucher-api.onrender.com/api/nestoria-payment-voucher';
+// Define the base URL for your Google Sheets API
+const API_ROOT_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
 
-function MainComponent() {
-  // PrintVoucherComponent (moved directly into MainComponent)
-  function PrintVoucherComponent({ voucherData, onBack }) {
-    if (!voucherData) {
-      return null; // Don't render if no voucher data is provided
-    }
-
-    return (
-      <div className="min-h-screen bg-white p-8">
-        <div className="max-w-4xl mx-auto bg-white border-2 border-gray-600 p-8 relative">
-          {/* Watermark */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <img
-              src="https://ik.imagekit.io/bhadoriyaji/fav%20icon.png?updatedAt=1749496082614"
-              alt="Nestoria Watermark"
-              className="w-74 h-64 opacity-10"
-            />
-          </div>
-
-          {/* Header for print view */}
-          <div className="flex justify-between items-start mb-6 relative z-10">
-            <div className="flex items-center">
-              <img
-                src="https://ik.imagekit.io/bhadoriyaji/nestoria-logo-new.png?updatedAt=1753868377250"
-                alt="Nestoria Group Logo"
-                className="w-20 h-20 mr-4"
-              />
-            </div>
-            <div className="text-right">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                Nestoria Buildcon Pvt. Ltd.
-              </h1>
-              <h2 className="text-xl font-semibold text-gray-800">
-                PAYMENT VOUCHER
-              </h2>
-            </div>
-          </div>
-
-          {/* Form Fields for print view */}
-          <div className="space-y-4 mb-6 relative z-10">
-            <div className="flex justify-between">
-              <div className="flex items-center">
-                <span className="text-gray-800 font-semibold mr-2">
-                  PAID TO
-                </span>
-                <div className="border-b border-black flex-1 min-w-[300px] pb-1">
-                  {voucherData.paidTo}
-                </div>
-              </div>
-              <div className="flex items-center ml-8">
-                <span className="text-gray-800 font-semibold mr-2">NO.:</span>
-                <div className="border-b border-black min-w-[100px] pb-1">
-                  {voucherData.voucherNo}
-                </div>
-              </div>
-              <div className="flex items-center ml-8">
-                <span className="text-gray-800 font-semibold mr-2">DATE:</span>
-                <div className="border-b border-black min-w-[120px] pb-1">
-                  {voucherData.date}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-gray-800 font-semibold mr-2">DEBIT</span>
-              <div className="border-b border-black flex-1 pb-1">
-                {voucherData.debit}
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-gray-800 font-semibold mr-2">
-                ON A/C OF
-              </span>
-              <div className="border-b border-black flex-1 pb-1">
-                {voucherData.onAccountOf}
-              </div>
-            </div>
-          </div>
-
-          {/* Particulars Table for print view */}
-          <div className="border-2 border-gray-600 rounded-lg mb-6 relative z-10">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-600">
-                  <th className="text-left p-3 text-gray-800 font-semibold">
-                    PARTICULARS:
-                  </th>
-                  <th className="text-center p-3 text-gray-800 font-semibold border-l border-gray-600 w-24">
-                    Rs.
-                  </th>
-                  <th className="text-center p-3 text-gray-800 font-semibold border-l border-gray-600 w-24">
-                    Ps.
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {voucherData.particulars.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-300">
-                    <td className="p-3">{item.description}</td>
-                    <td className="p-3 text-center border-l border-gray-600">
-                      {item.rs}
-                    </td>
-                    <td className="p-3 text-center border-l border-gray-600">
-                      {item.ps}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="border-b border-gray-300">
-                  <td className="p-3 font-semibold text-gray-800">
-                    RUPEES IN WORDS
-                  </td>
-                  <td className="p-3 border-l border-gray-600"></td>
-                  <td className="p-3 border-l border-gray-600"></td>
-                </tr>
-                <tr className="border-b border-gray-300">
-                  <td className="p-3">{voucherData.amountInWords}</td>
-                  <td className="p-3 border-l border-gray-600"></td>
-                  <td className="p-3 border-l border-gray-600"></td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-semibold text-right">TOTAL</td>
-                  <td className="p-3 text-center border-l border-gray-600 font-semibold">
-                    {Math.floor(voucherData.totalAmount)}
-                  </td>
-                  <td className="p-3 text-center border-l border-gray-600 font-semibold">
-                    {Math.round((voucherData.totalAmount % 1) * 100)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Authorization Section for print view */}
-          <div className="flex justify-between items-end relative z-10">
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <span className="text-gray-800 font-semibold mr-2">
-                  Authorized by L1
-                </span>
-                <div className="border-b border-black min-w-[150px] pb-1">
-                  {voucherData.authorizedByL1}
-                </div>
-              </div>
-              <div className="flex items-center">
-                <span className="text-gray-800 font-semibold mr-2">
-                  Prepared By
-                </span>
-                <div className="border-b border-black min-w-[150px] pb-1">
-                  {voucherData.preparedBy}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-gray-800 font-semibold mr-2">
-                Authorized by L2
-              </span>
-              <div className="border-b border-black min-w-[150px] pb-1">
-                {voucherData.authorizedByL2}
-              </div>
-            </div>
-
-            <div className="text-center">
-              <div className="w-24 h-16 border border-black mb-2"></div>
-              <div className="text-sm text-gray-600">RECEIVER'S SIGN</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Back button for print view (hidden during print) */}
-        <div className="text-center mt-8 no-print">
-          <button
-            onClick={onBack}
-            className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
-          >
-            Back
-          </button>
-        </div>
-
-        {/* Global print styles */}
-        <style>{`
-          @media print {
-            .no-print {
-              display: none !important;
-            }
-
-            body {
-              margin: 0;
-              padding: 0;
-              font-size: 12px;
-              line-height: 1.3;
-            }
-
-            @page {
-              size: A4 landscape;
-              margin: 0.5in;
-            }
-
-            .print-container {
-              width: 100%;
-              height: 5.8in;
-              padding: 10px 20px;
-              box-sizing: border-box;
-              font-size: 10px;
-              overflow: hidden;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-
-            .max-w-4xl {
-              max-width: 100%;
-              width: 100%;
-              margin: 0;
-            }
-
-            .print-header,
-            .print-fields,
-            .print-table,
-            .print-auth {
-              margin-bottom: 6px;
-            }
-
-            .print-header h2,
-            .print-header h3 {
-              margin: 0;
-              font-size: 10px;
-            }
-
-            .print-table table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 10px;
-            }
-
-            .print-table th,
-            .print-table td {
-              border: 1px solid #000;
-              padding: 3px 4px;
-              text-align: left;
-            }
-            .print-table td {
-              font-size: 16px;
-              font-weight: 900;
-            }
-
-            .print-auth {
-              display: flex;
-              justify-content: space-between;
-              font-size: 10px;
-            }
-
-            .signature-box {
-              border: 1px solid #000;
-              width: 80px;
-              height: 40px;
-              margin-left: auto;
-            }
-
-            .print-container + .print-container {
-              page-break-before: always;
-            }
-          }
-        `}</style>
-      </div>
-    );
+// Reusable component for displaying a single voucher's content
+function VoucherDisplayComponent({ voucherData }) {
+  if (!voucherData) {
+    return null;
   }
 
-  // SubmittedVouchersPage Component - Now nested inside MainComponent
-  function SubmittedVouchersPage({ onPrintVoucher, onBackToForm, onEditVoucher }) {
-    const [submittedVouchers, setSubmittedVouchers] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState(null);
-    const [selectedDate, setSelectedDate] = React.useState('');
-    const [searchQuery, setSearchQuery] = React.useState(''); // New state for search query
+  return (
+    <div className="max-w-4xl mx-auto bg-white border-2 border-gray-600 p-8 relative print-container">
+      {/* Watermark */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <img
+          src="https://ucarecdn.com/326c2bf5-cf90-469a-98fd-707a7a29595f/-/format/auto/"
+          alt="Nestoria Watermark"
+          className="w-74 h-64 opacity-10"
+        />
+      </div>
 
-    // Debounce function
-    const debounce = (func, delay) => {
-      let timeout;
-      return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-      };
+      {/* Header */}
+      <div className="flex justify-between items-start mb-6 relative z-10 print-header">
+        <div className="flex items-center">
+          <img
+            src="https://ik.imagekit.io/bhadoriyaji/nestoria-logo-new.png?updatedAt=1753868377250"//
+            alt="Nestoria Group Logo"
+            className="w-20 h-20 mr-4"
+          />
+        </div>
+        <div className="text-right">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Nestoria Buildcon Pvt. Ltd.
+          </h1>
+          <h2 className="text-xl font-semibold text-gray-800">
+            PAYMENT VOUCHER
+          </h2>
+        </div>
+      </div>
+
+      {/* Form Fields */}
+      <div className="space-y-4 mb-6 relative z-10 print-fields">
+        <div className="flex justify-between">
+          <div className="flex items-center">
+            <span className="text-gray-800 font-semibold mr-2">PAID TO</span>
+            <div className="border-b border-black flex-1 min-w-[300px] pb-1">
+              {voucherData.paidTo}
+            </div>
+          </div>
+          <div className="flex items-center ml-8">
+            <span className="text-gray-800 font-semibold mr-2">NO.:</span>
+            <div className="border-b border-black min-w-[100px] pb-1">
+              {voucherData.voucherNo}
+            </div>
+          </div>
+          <div className="flex items-center ml-8">
+            <span className="text-gray-800 font-semibold mr-2">DATE:</span>
+            <div className="border-b border-black min-w-[120px] pb-1">
+              {voucherData.date}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <span className="text-gray-800 font-semibold mr-2">DEBIT</span>
+          <div className="border-b border-black flex-1 pb-1">
+            {voucherData.debit}
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <span className="text-gray-800 font-semibold mr-2">ON A/C OF</span>
+          <div className="border-b border-black flex-1 pb-1">
+            {voucherData.onAccountOf}
+          </div>
+        </div>
+      </div>
+
+      {/* Particulars Table */}
+      <div className="border-2 border-gray-600 rounded-lg mb-6 relative z-10 print-table">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-600">
+              <th className="text-left p-3 text-gray-800 font-semibold">
+                PARTICULARS:
+              </th>
+              <th className="text-center p-3 text-gray-800 font-semibold border-l border-gray-600 w-24">
+                Rs.
+              </th>
+              <th className="text-center p-3 text-gray-800 font-semibold border-l border-gray-600 w-24">
+                Ps.
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {voucherData.particulars.map((item, index) => (
+              <tr key={index} className="border-b border-gray-300">
+                <td className="p-3">{item.description}</td>
+                <td className="p-3 text-center border-l border-gray-600">
+                  {item.rs}
+                </td>
+                <td className="p-3 text-center border-l border-gray-600">
+                  {item.ps}
+                </td>
+              </tr>
+            ))}
+            <tr className="border-b border-gray-300">
+              <td className="p-3 font-semibold text-gray-800">
+                RUPEES IN WORDS
+              </td>
+              <td className="p-3 border-l border-gray-600"></td>
+              <td className="p-3 border-l border-gray-600"></td>
+            </tr>
+            <tr className="border-b border-gray-300">
+              <td className="p-3">{voucherData.amountInWords}</td>
+              <td className="p-3 border-l border-gray-600"></td>
+              <td className="p-3 border-l border-gray-600"></td>
+            </tr>
+            <tr>
+              <td className="p-3 font-semibold text-right">TOTAL</td>
+              <td className="p-3 text-center border-l border-gray-600 font-semibold">
+                {Math.floor(voucherData.totalAmount)}
+              </td>
+              <td className="p-3 text-center border-l border-gray-600 font-semibold">
+                {Math.round((voucherData.totalAmount % 1) * 100)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Authorization Section */}
+      <div className="flex justify-between items-end relative z-10 print-auth">
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <span className="text-gray-800 font-semibold mr-2">
+              Authorized by L1
+            </span>
+            <div className="border-b border-black min-w-[150px] pb-1">
+              {voucherData.authorizedByL1}
+            </div>
+          </div>
+          <div className="flex items-center">
+            <span className="text-gray-800 font-semibold mr-2">
+              Prepared By
+            </span>
+            <div className="border-b border-black min-w-[150px] pb-1">
+              {voucherData.preparedBy}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <span className="text-gray-800 font-semibold mr-2">
+            Authorized by L2
+          </span>
+          <div className="border-b border-black min-w-[150px] pb-1">
+            {voucherData.authorizedByL2}
+          </div>
+        </div>
+
+        <div className="text-center">
+          <div className="w-24 h-16 border border-black mb-2 signature-box"></div>
+          <div className="text-sm text-gray-600">RECEIVER'S SIGN</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// PrintVoucherComponent (for single voucher print)
+function PrintVoucherComponent({ voucherData, onBack }) {
+  return (
+    <div className="min-h-screen bg-white p-8">
+      <VoucherDisplayComponent voucherData={voucherData} />
+      {/* Back button for print view (hidden during print) */}
+      <div className="text-center mt-8 no-print">
+        <button
+          onClick={onBack}
+          className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+        >
+          Back
+        </button>
+      </div>
+
+      {/* Global print styles for single voucher */}
+      <style>{`
+       @media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    line-height: 1.3;
+    font-family: sans-serif;
+    color: #000;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0.5in;
+  }
+
+  .print-container {
+    width: 100%;
+    height: 5.8in;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 10px;
+  }
+
+  .max-w-4xl {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+
+  .print-header,
+  .print-fields,
+  .print-table,
+  .print-auth {
+    margin-bottom: 6px;
+  }
+
+  .print-header h2,
+  .print-header h3 {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .print-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .print-table th,
+  .print-table td {
+    border: 1px solid #000;
+    padding: 3px 4px;
+    text-align: left;
+  }
+
+  .print-table td {
+    font-size: 18px;
+    font-weight: normal;
+  }
+
+  .print-auth {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+
+  .signature-box {
+    border: 1px solid #000;
+    width: 80px;
+    height: 40px;
+    margin-left: auto;
+  }
+
+  .print-container + .print-container {
+    page-break-before: always;
+  }
+}
+
+      `}</style>
+    </div>
+  );
+}
+
+// PrintAllVouchersComponent (for printing multiple vouchers)
+function PrintAllVouchersComponent({ vouchers, onBack }) {
+  return (
+    <div className="min-h-screen bg-white p-8">
+      {vouchers.map((voucher, index) => (
+        <React.Fragment key={voucher._id}>
+          <VoucherDisplayComponent voucherData={voucher} />
+          {index < vouchers.length - 1 && (
+            <div className="page-break-after-always no-print"></div> // For visual separation in non-print view
+          )}
+        </React.Fragment>
+      ))}
+
+      {/* Back button for print view (hidden during print) */}
+      <div className="text-center mt-8 no-print">
+        <button
+          onClick={onBack}
+          className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+        >
+          Back
+        </button>
+      </div>
+
+      {/* Global print styles for multiple vouchers */}
+      <style>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          body { margin: 0; padding: 0; font-size: 12px; line-height: 1.3; }
+          @page { size: A4 landscape; margin: 0.5in; }
+          .print-container { width: 100%; height: 5.8in; padding: 10px 20px; box-sizing: border-box; font-size: 10px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; }
+          .print-container:last-child { page-break-after: auto; } /* No page break after the last one */
+          .max-w-4xl { max-width: 100%; width: 100%; margin: 0; }
+          .print-header, .print-fields, .print-table, .print-auth { margin-bottom: 6px; }
+          .print-header h2, .print-header h3 { margin: 0; font-size: 14px; }
+          .print-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+          .print-table th, .print-table td { border: 1px solid #000; padding: 3px 4px; text-align: left; }
+          .print-table td { font-size: 12px; font-weight: 600; }
+          .print-auth { display: flex; justify-content: space-between; font-size: 10px; }
+          .signature-box { border: 1px solid #000; width: 80px; height: 40px; margin-left: auto; }
+          .page-break-after-always { page-break-after: always; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// SubmittedVouchersPage Component
+function SubmittedVouchersPage({
+  onPrintVoucher,
+  onBackToForm,
+  onEditVoucher,
+  onPrintAllVouchers,
+}) {
+  const [submittedVouchers, setSubmittedVouchers] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [selectedDate, setSelectedDate] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
+
+  // Effect for debouncing the search query
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
     };
+  }, [searchQuery]);
 
-    // Function to fetch vouchers from the API
-    const fetchVouchers = React.useCallback(async () => {
+  // Function to fetch vouchers from the API
+  const fetchVouchers = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_ROOT_URL}/vouchers`);
+      let data = response.data;
+
+      if (selectedDate) {
+        data = data.filter((voucher) => voucher.date === selectedDate);
+      }
+
+      if (debouncedSearchQuery) {
+        data = data.filter(
+          (voucher) =>
+            voucher.name &&
+            voucher.name
+              .toLowerCase()
+              .includes(debouncedSearchQuery.toLowerCase())
+        );
+      }
+
+      setSubmittedVouchers(data);
+    } catch (err) {
+      console.error("Failed to fetch vouchers:", err);
+      setError(
+        "Failed to load vouchers. Please ensure your Render API is running and accessible at " +
+          API_ROOT_URL +
+          ". Error: " +
+          (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate, debouncedSearchQuery]);
+
+  React.useEffect(() => {
+    fetchVouchers();
+  }, [fetchVouchers]);
+
+  const handlePrintClick = (voucher) => {
+    if (typeof onPrintVoucher === "function") {
+      onPrintVoucher(voucher);
+    } else {
+      console.warn("onPrintVoucher prop is not a function or is missing.");
+    }
+  };
+
+  const handleEditClick = (voucher) => {
+    if (typeof onEditVoucher === "function") {
+      onEditVoucher(voucher);
+    } else {
+      console.warn("onEditVoucher prop is not a function or is missing.");
+    }
+  };
+
+  const handleDeleteClick = async (id) => {
+    const messageBox = document.createElement("div");
+    messageBox.className =
+      "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
+    messageBox.innerHTML = `
+      <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+        <p class="text-xl font-semibold mb-4">Are you sure you want to delete this voucher?</p>
+        <div class="flex justify-center space-x-4">
+          <button id="confirmDelete" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Yes, Delete</button>
+          <button id="cancelDelete" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">No, Cancel</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(messageBox);
+
+    document.getElementById("confirmDelete").onclick = async () => {
+      document.body.removeChild(messageBox);
       try {
-        setLoading(true);
-        setError(null);
-        // GET all vouchers: uses API_ROOT_URL + /voucherData
-        const response = await axios.get(`${API_ROOT_URL}/voucherData`);
-        let data = response.data;
-
-        // Apply date filter
-        if (selectedDate) {
-          data = data.filter(voucher => voucher.date === selectedDate);
-        }
-
-        // Apply search query filter (case-insensitive)
-        if (searchQuery) {
-          data = data.filter(voucher =>
-            voucher.name && voucher.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-
-        setSubmittedVouchers(data);
-      } catch (err) {
-        console.error("Failed to fetch vouchers:", err);
-        setError("Failed to load vouchers. Please ensure your Render API is running and accessible at " + API_ROOT_URL + ". Error: " + (err.response?.data?.error || err.message));
-      } finally {
-        setLoading(false);
-      }
-    }, [selectedDate, searchQuery]); // Dependencies for useCallback
-
-    React.useEffect(() => {
-      fetchVouchers();
-    }, [fetchVouchers]); // Re-fetch when fetchVouchers (which depends on selectedDate/searchQuery) changes
-
-    // Debounced search handler
-    const debouncedSetSearchQuery = React.useCallback(
-      debounce((value) => {
-        setSearchQuery(value);
-      }, 500), // 500ms debounce delay
-      []
-    );
-
-    const handleSearchInputChange = (e) => {
-      debouncedSetSearchQuery(e.target.value);
-    };
-
-
-    const handlePrintClick = (voucher) => {
-      if (typeof onPrintVoucher === 'function') {
-        onPrintVoucher(voucher);
-      } else {
-        console.warn("onPrintVoucher prop is not a function or is missing.");
+        await axios.delete(`${API_ROOT_URL}/vouchers/${id}`);
+        console.log("Delete Success");
+        const successMessageBox = document.createElement("div");
+        successMessageBox.className =
+          "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
+        successMessageBox.innerHTML = `
+          <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <p class="text-xl font-semibold mb-4">Voucher deleted successfully!</p>
+            <button id="closeSuccessMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
+          </div>
+        `;
+        document.body.appendChild(successMessageBox);
+        document.getElementById("closeSuccessMessageBox").onclick = () => {
+          document.body.removeChild(successMessageBox);
+          fetchVouchers();
+        };
+      } catch (error) {
+        console.error("Delete Error:", error);
+        const errorMessageBox = document.createElement("div");
+        errorMessageBox.className =
+          "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
+        errorMessageBox.innerHTML = `
+          <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <p class="text-xl font-semibold mb-4">Failed to delete voucher. Error: ${
+              error.response?.data?.error || error.message
+            }</p>
+            <button id="closeErrorMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
+          </div>
+        `;
+        document.body.appendChild(errorMessageBox);
+        document.getElementById("closeErrorMessageBox").onclick = () => {
+          document.body.removeChild(errorMessageBox);
+        };
       }
     };
 
-    const handleEditClick = (voucher) => {
-      if (typeof onEditVoucher === 'function') {
-        onEditVoucher(voucher);
-      } else {
-        console.warn("onEditVoucher prop is not a function or is missing.");
-      }
+    document.getElementById("cancelDelete").onclick = () => {
+      document.body.removeChild(messageBox);
     };
+  };
 
-    const handleDeleteClick = async (id) => {
-      const messageBox = document.createElement('div');
-      messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+  const exportToExcel = () => {
+    if (submittedVouchers.length === 0) {
+      const messageBox = document.createElement("div");
+      messageBox.className =
+        "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
       messageBox.innerHTML = `
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-          <p class="text-xl font-semibold mb-4">Are you sure you want to delete this voucher?</p>
-          <div class="flex justify-center space-x-4">
-            <button id="confirmDelete" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Yes, Delete</button>
-            <button id="cancelDelete" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">No, Cancel</button>
-          </div>
+          <p class="text-xl font-semibold mb-4">No vouchers to export!</p>
+          <button id="closeMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
         </div>
       `;
       document.body.appendChild(messageBox);
-
-      document.getElementById('confirmDelete').onclick = async () => {
-        document.body.removeChild(messageBox);
-        try {
-          // DELETE a voucher: uses API_ROOT_URL + /:id
-          await axios.delete(`${API_ROOT_URL}/${id}`);
-          console.log('Delete Success');
-          const successMessageBox = document.createElement('div');
-          successMessageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-          successMessageBox.innerHTML = `
-            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-              <p class="text-xl font-semibold mb-4">Voucher deleted successfully!</p>
-              <button id="closeSuccessMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
-            </div>
-          `;
-          document.body.appendChild(successMessageBox);
-          document.getElementById('closeSuccessMessageBox').onclick = () => {
-            document.body.removeChild(successMessageBox);
-            fetchVouchers(); // Re-fetch after deletion
-          };
-        } catch (error) {
-          console.error('Delete Error:', error);
-          const errorMessageBox = document.createElement('div');
-          errorMessageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-          errorMessageBox.innerHTML = `
-            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-              <p class="text-xl font-semibold mb-4">Failed to delete voucher. Error: ${error.response?.data?.error || error.message}</p>
-              <button id="closeErrorMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
-            </div>
-          `;
-          document.body.appendChild(errorMessageBox);
-          document.getElementById('closeErrorMessageBox').onclick = () => {
-            document.body.removeChild(errorMessageBox);
-          };
-        }
-      };
-
-      document.getElementById('cancelDelete').onclick = () => {
+      document.getElementById("closeMessageBox").onclick = () => {
         document.body.removeChild(messageBox);
       };
-    };
+      return;
+    }
 
-    const exportToExcel = () => {
-      if (submittedVouchers.length === 0) {
-        const messageBox = document.createElement('div');
-        messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-        messageBox.innerHTML = `
-          <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-            <p class="text-xl font-semibold mb-4">No vouchers to export!</p>
-            <button id="closeMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
-          </div>
-        `;
-        document.body.appendChild(messageBox);
-        document.getElementById('closeMessageBox').onclick = () => {
-        document.body.removeChild(messageBox);
-        };
-        return;
-      }
+    const wsData = [
+      [
+        "Voucher No",
+        "Date",
+        "Name",
+        "Paid To",
+        "Debit",
+        "On A/C Of",
+        "Particulars Description",
+        "Amount (Rs)",
+        "Amount (Ps)",
+        "Total Amount",
+        "Amount in Words",
+        "Prepared By",
+        "Authorized By L1",
+        "Authorized By L2",
+      ],
+    ];
 
-      const wsData = [
-        [
-          "Voucher No",
-          "Date",
-          "Name",
-          "Paid To",
-          "Debit",
-          "On A/C Of",
-          "Particulars Description",
-          "Amount (Rs)",
-          "Amount (Ps)",
-          "Total Amount",
-          "Amount in Words",
-          "Prepared By",
-          "Authorized By L1",
-          "Authorized By L2",
-        ],
-      ];
-
-      submittedVouchers.forEach((voucher) => {
-        voucher.particulars.forEach((particular, index) => {
-          wsData.push([
-            index === 0 ? voucher.voucherNo : "",
-            index === 0 ? voucher.date : "",
-            index === 0 ? voucher.name : "",
-            index === 0 ? voucher.paidTo : "",
-            index === 0 ? voucher.debit : "",
-            index === 0 ? voucher.onAccountOf : "",
-            particular.description,
-            particular.rs,
-            particular.ps,
-            index === 0 ? voucher.totalAmount?.toFixed(2) : "",
-            index === 0 ? voucher.amountInWords : "",
-            index === 0 ? voucher.preparedBy : "",
-            index === 0 ? voucher.authorizedByL1 : "",
-            index === 0 ? voucher.authorizedByL2 : "",
-          ]);
-        });
+    submittedVouchers.forEach((voucher) => {
+      voucher.particulars.forEach((particular, index) => {
+        wsData.push([
+          index === 0 ? voucher.voucherNo : "",
+          index === 0 ? voucher.date : "",
+          index === 0 ? voucher.name : "",
+          index === 0 ? voucher.paidTo : "",
+          index === 0 ? voucher.debit : "",
+          index === 0 ? voucher.onAccountOf : "",
+          particular.description,
+          particular.rs,
+          particular.ps,
+          index === 0 ? voucher.totalAmount?.toFixed(2) : "",
+          index === 0 ? voucher.amountInWords : "",
+          index === 0 ? voucher.preparedBy : "",
+          index === 0 ? voucher.authorizedByL1 : "",
+          index === 0 ? voucher.authorizedByL2 : "",
+        ]);
       });
+    });
 
-      const csvContent = wsData
-        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-        .join("\n");
+    const csvContent = wsData
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
 
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "submitted_vouchers.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    };
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "submitted_vouchers.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
 
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-          <div className="text-xl font-semibold text-gray-700">Loading submitted vouchers...</div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-          <div className="text-xl font-semibold text-red-600 mb-4">{error}</div>
-          <button
-            onClick={onBackToForm}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out"
-          >
-            Back to Form
-          </button>
-        </div>
-      );
-    }
-
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 font-sans antialiased">
-        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">
-              Submitted Vouchers
-            </h1>
-            <div className="flex items-center space-x-3">
-              <label htmlFor="filterDate" className="block text-sm font-semibold text-gray-700">
-                Filter by Date:
-              </label>
-              <input
-                type="date"
-                id="filterDate"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              />
-              <input
-                type="text"
-                placeholder="Search by name..."
-                onChange={handleSearchInputChange} // Use debounced handler
-                className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              />
-              <button
-                onClick={exportToExcel}
-                className="bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  ></path>
-                </svg>
-                Export to Excel ({submittedVouchers.length})
-              </button>
-              <button
-                onClick={onBackToForm}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
-              >
-                Back to Form
-              </button>
-            </div>
-          </div>
-
-
-          {submittedVouchers.length === 0 ? (
-            <div className="text-center text-gray-600 text-lg py-10">
-              No vouchers have been submitted yet.
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voucher No.</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid To</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debit</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">On A/C Of</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {submittedVouchers.map((voucher) => (
-                    <tr key={voucher._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{voucher.voucherNo}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{voucher.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{voucher.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{voucher.paidTo}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{voucher.debit}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{voucher.onAccountOf}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">₹{voucher.totalAmount?.toFixed(2) || '0.00'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleEditClick(voucher)}
-                          className="text-blue-600 hover:text-blue-900 bg-blue-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-blue-200 mr-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handlePrintClick(voucher)}
-                          className="text-indigo-600 hover:text-indigo-900 bg-indigo-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-indigo-200 mr-2"
-                        >
-                          Print
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(voucher._id)}
-                          className="text-red-600 hover:text-red-900 bg-red-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-red-200"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-xl font-semibold text-gray-700">
+          Loading submitted vouchers...
         </div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="text-xl font-semibold text-red-600 mb-4">{error}</div>
+        <button
+          onClick={onBackToForm}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out"
+        >
+          Back to Form
+        </button>
+      </div>
+    );
+  }
 
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 font-sans antialiased">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">
+            Submitted Vouchers
+          </h1>
+          <div className="flex items-center space-x-3">
+            <label
+              htmlFor="filterDate"
+              className="block text-sm font-semibold text-gray-700"
+            >
+              Filter by Date:
+            </label>
+            <input
+              type="date"
+              id="filterDate"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              onClick={exportToExcel}
+              className="bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
+              </svg>
+              Export to Excel ({submittedVouchers.length})
+            </button>
+            <button
+              onClick={() => onPrintAllVouchers(submittedVouchers)}
+              className="bg-teal-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-teal-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m0 0l4 4m-4-4l-4 4m-1-4a2 2 0 002 2h4a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z"
+                ></path>
+              </svg>
+              Print All ({submittedVouchers.length})
+            </button>
+            <button
+              onClick={onBackToForm}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+            >
+              New Voucher
+            </button>
+          </div>
+        </div>
+
+        {submittedVouchers.length === 0 ? (
+          <div className="text-center text-gray-600 text-lg py-10">
+            No vouchers have been submitted yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Voucher No.
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Paid To
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Debit
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    On A/C Of
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Amount
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {submittedVouchers.map((voucher) => (
+                  <tr key={voucher._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {voucher.voucherNo}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {voucher.date}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {voucher.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {voucher.paidTo}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {voucher.debit}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {voucher.onAccountOf}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      ₹{voucher.totalAmount?.toFixed(2) || "0.00"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleEditClick(voucher)}
+                        className="text-blue-600 hover:text-blue-900 bg-blue-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-blue-200 mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handlePrintClick(voucher)}
+                        className="text-indigo-600 hover:text-indigo-900 bg-indigo-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-indigo-200 mr-2"
+                      >
+                        Print
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(voucher._id)}
+                        className="text-red-600 hover:text-red-900 bg-red-100 px-3 py-1 rounded-md transition duration-150 ease-in-out hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MainComponent() {
   const [formData, setFormData] = React.useState({
     name: "",
     paidTo: "",
@@ -632,9 +748,11 @@ function MainComponent() {
     authorizedByL2: "",
   });
 
-  const [currentVoucherToPrint, setCurrentVoucherToPrint] = React.useState(null);
-  const [viewMode, setViewMode] = React.useState('form'); // 'form' or 'submitted' or 'print'
-  const [editingVoucherId, setEditingVoucherId] = React.useState(null); // New state for tracking editing
+  const [currentVoucherToPrint, setCurrentVoucherToPrint] =
+    React.useState(null);
+  const [allVouchersToPrint, setAllVouchersToPrint] = React.useState(null);
+  const [viewMode, setViewMode] = React.useState("submitted"); // 'form' or 'submitted' or 'print' or 'allPrint'
+  const [editingVoucherId, setEditingVoucherId] = React.useState(null);
 
   // Options for select fields
   const nameOptions = [
@@ -655,20 +773,12 @@ function MainComponent() {
 
   const paidToOptions = [
     "RK PETROLEUM",
-    "GUJARAT GAS LTD",
+    "GUJRAT GAS LTD",
     "GALLOPS PETROLEUM",
     "SHELL PETROLEUM",
     "H.P PETROLEUM",
     "GRAND MILLENNIUM AHMEDABAD",
     "GALLOPS FOOD COURT",
-    "ADANI KANCHAN ENTERPRISES ",
-    "TORAN FOOD COURT",
-    "UDAY PETROLEUM",
-    "ISCON GANTHIYA",
-    "LAKSHYA PETROLEUM",
-    "SHRRDHA PETROLEUM",
-    "SHREE LAKSHMI NARAYAN AUTOMOBILES",
-    "JASHBHI PATEL & CORPORATION",
     "Manual Entry",
   ];
 
@@ -677,32 +787,34 @@ function MainComponent() {
   const onAccountOfOptions = [
     "Fuel Exp.",
     "Food Exp.",
-    "OTHER EXP.",
-    "OTHER EXP PANCHER",
     "Parking",
     "Manual Entry",
   ];
 
   // Auto-generate voucher number on initial load or when starting a new form
   React.useEffect(() => {
-    // Only generate a new voucher number if it's a new form (not editing)
-    // and the current voucherNo is empty or was from a previous session/reset
-    if (!editingVoucherId && (viewMode === 'form' && !formData.voucherNo)) {
+    if (!editingVoucherId && viewMode === "form" && !formData.voucherNo) {
       setFormData((prev) => ({
         ...prev,
         voucherNo: `NB${Date.now().toString().slice(-6)}`,
       }));
     }
-  }, [viewMode, editingVoucherId]); // Dependencies: only re-run if viewMode or editingVoucherId changes. formData.voucherNo is *not* a dependency here to prevent loop.
+  }, [viewMode, editingVoucherId]);
 
   // Helper function to check if a value is a manual entry (has the prefix)
   const isManualPrefixed = (value) => value.startsWith("Manual Entry:");
 
   // Auto-generate description when relevant fields change
   React.useEffect(() => {
-    const cleanedName = isManualPrefixed(formData.name) ? formData.name.replace("Manual Entry:", "") : formData.name;
-    const cleanedPaidTo = isManualPrefixed(formData.paidTo) ? formData.paidTo.replace("Manual Entry:", "") : formData.paidTo;
-    const cleanedOnAccountOf = isManualPrefixed(formData.onAccountOf) ? formData.onAccountOf.replace("Manual Entry:", "") : formData.onAccountOf;
+    const cleanedName = isManualPrefixed(formData.name)
+      ? formData.name.replace("Manual Entry:", "")
+      : formData.name;
+    const cleanedPaidTo = isManualPrefixed(formData.paidTo)
+      ? formData.paidTo.replace("Manual Entry:", "")
+      : formData.paidTo;
+    const cleanedOnAccountOf = isManualPrefixed(formData.onAccountOf)
+      ? formData.onAccountOf.replace("Manual Entry:", "")
+      : formData.onAccountOf;
 
     const autoGeneratedText = `Amount Being paid To ${cleanedPaidTo} For ${cleanedOnAccountOf} By ${cleanedName}`;
     const currentDescription = formData.particulars[0]?.description || "";
@@ -715,14 +827,15 @@ function MainComponent() {
       formData.paidTo !== "Manual Entry" &&
       formData.onAccountOf !== "Manual Entry";
 
-    // Check if the current description is empty OR if it matches the auto-generated pattern
-    // This prevents overwriting a manually typed description unless it was already auto-generated
-    const isCurrentDescriptionAutoGenerated = currentDescription.startsWith("Amount Being paid To");
+    const isCurrentDescriptionAutoGenerated = currentDescription.startsWith(
+      "Amount Being paid To"
+    );
 
     if (shouldAutoGenerate) {
-      // Only update if the current description is empty or was previously auto-generated
-      // AND if the description actually needs to change
-      if ((!currentDescription || isCurrentDescriptionAutoGenerated) && currentDescription !== autoGeneratedText) {
+      if (
+        (!currentDescription || isCurrentDescriptionAutoGenerated) &&
+        currentDescription !== autoGeneratedText
+      ) {
         setFormData((prev) => ({
           ...prev,
           particulars: prev.particulars.map((item, index) =>
@@ -731,8 +844,6 @@ function MainComponent() {
         }));
       }
     } else {
-      // If auto-generation criteria are not met, clear the description if it was previously auto-generated
-      // AND if the description is not already empty
       if (isCurrentDescriptionAutoGenerated && currentDescription !== "") {
         setFormData((prev) => ({
           ...prev,
@@ -742,23 +853,54 @@ function MainComponent() {
         }));
       }
     }
-  }, [formData.name, formData.paidTo, formData.onAccountOf, formData.particulars]); // Added formData.particulars to dependencies for completeness, though the specific elements are accessed.
+  }, [
+    formData.name,
+    formData.paidTo,
+    formData.onAccountOf,
+    formData.particulars,
+  ]);
 
   // Convert number to words (Indian numbering system)
   const numberToWords = (num) => {
     if (isNaN(num) || num === null || num === undefined) return "";
-    
-    // Ensure num is a number and has two decimal places for consistent splitting
-    const [rupees, paise] = num.toFixed(2).split('.').map(Number);
+
+    const [rupees, paise] = num.toFixed(2).split(".").map(Number);
 
     const units = [
-      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+      "",
+      "One",
+      "Two",
+      "Three",
+      "Four",
+      "Five",
+      "Six",
+      "Seven",
+      "Eight",
+      "Nine",
     ];
     const teens = [
-      "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+      "Ten",
+      "Eleven",
+      "Twelve",
+      "Thirteen",
+      "Fourteen",
+      "Fifteen",
+      "Sixteen",
+      "Seventeen",
+      "Eighteen",
+      "Nineteen",
     ];
     const tens = [
-      "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
+      "",
+      "",
+      "Twenty",
+      "Thirty",
+      "Forty",
+      "Fifty",
+      "Sixty",
+      "Seventy",
+      "Eighty",
+      "Ninety",
     ];
 
     const convertChunk = (n) => {
@@ -820,7 +962,7 @@ function MainComponent() {
       } else if (p > 0) {
         paiseWords.push(units[p] + " ");
       }
-      
+
       const finalPaiseWords = paiseWords.join(" ").trim();
       if (finalPaiseWords) {
         result += ` and ${finalPaiseWords} Paise`;
@@ -833,9 +975,8 @@ function MainComponent() {
   // Calculate total amount from particulars
   const calculateTotal = () => {
     return formData.particulars.reduce((total, item) => {
-      // Use parseFloat for calculation, ensure it's 0 if empty string
-      const rs = parseFloat(item.rs || '0') || 0;
-      const ps = parseFloat(item.ps || '0') || 0;
+      const rs = parseFloat(item.rs || "0") || 0;
+      const ps = parseFloat(item.ps || "0") || 0;
       return total + rs + ps / 100;
     }, 0);
   };
@@ -853,18 +994,15 @@ function MainComponent() {
     const newParticulars = [...formData.particulars];
     let processedValue = value;
 
-    if (field === 'rs' || field === 'ps') {
-      // Remove any non-digit characters
-      const numericValue = value.replace(/[^0-9]/g, '');
-      
-      if (numericValue === '') {
-        processedValue = ''; // Allow empty string for clearing input
+    if (field === "rs" || field === "ps") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+
+      if (numericValue === "") {
+        processedValue = "";
       } else {
-        if (field === 'ps') {
-          // For paise, parse and cap at 99, then convert back to string
+        if (field === "ps") {
           processedValue = Math.min(parseInt(numericValue, 10), 99).toString();
         } else {
-          // For rupees, just store the cleaned numeric string
           processedValue = numericValue;
         }
       }
@@ -903,7 +1041,7 @@ function MainComponent() {
       paidTo: "",
       debit: "",
       onAccountOf: "",
-      voucherNo: `NB${Date.now().toString().slice(-6)}`, // Generate new voucher number
+      voucherNo: `NB${Date.now().toString().slice(-6)}`,
       date: "",
       particulars: [{ description: "", rs: "", ps: "" }],
       preparedBy: "",
@@ -915,12 +1053,12 @@ function MainComponent() {
 
   // Handle form submission (now handles both create and update)
   const handleSaveVoucher = async () => {
-    // Validation Logic
     const errors = [];
 
-    // Helper to get cleaned value for validation
     const getCleanedValue = (fieldValue) =>
-      fieldValue.startsWith("Manual Entry:") ? fieldValue.replace("Manual Entry:", "").trim() : fieldValue.trim();
+      fieldValue.startsWith("Manual Entry:")
+        ? fieldValue.replace("Manual Entry:", "").trim()
+        : fieldValue.trim();
 
     if (!getCleanedValue(formData.name)) {
       errors.push("Name");
@@ -939,9 +1077,12 @@ function MainComponent() {
     }
 
     if (errors.length > 0) {
-      const message = `Please fill in or select valid options for the following fields: ${errors.join(", ")}.`;
-      const messageBox = document.createElement('div');
-      messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+      const message = `Please fill in or select valid options for the following fields: ${errors.join(
+        ", "
+      )}.`;
+      const messageBox = document.createElement("div");
+      messageBox.className =
+        "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
       messageBox.innerHTML = `
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
           <p class="text-xl font-semibold mb-4 text-red-600">${message}</p>
@@ -949,16 +1090,16 @@ function MainComponent() {
         </div>
       `;
       document.body.appendChild(messageBox);
-      document.getElementById('closeMessageBox').onclick = () => {
+      document.getElementById("closeMessageBox").onclick = () => {
         document.body.removeChild(messageBox);
       };
-      return; // Stop submission if validation fails
+      return;
     }
 
-
-    // Extract actual values if "Manual Entry:" prefix is present
     const cleanValue = (value) =>
-      value.startsWith("Manual Entry:") ? value.replace("Manual Entry:", "") : value;
+      value.startsWith("Manual Entry:")
+        ? value.replace("Manual Entry:", "")
+        : value;
 
     const voucherDataToSave = {
       ...formData,
@@ -967,46 +1108,53 @@ function MainComponent() {
       debit: cleanValue(formData.debit),
       onAccountOf: cleanValue(formData.onAccountOf),
       totalAmount: calculateTotal(),
-      amountInWords: numberToWords(calculateTotal()), // Pass full calculated total
+      amountInWords: numberToWords(calculateTotal()),
     };
 
     try {
       let response;
       if (editingVoucherId) {
-        // Update existing voucher: uses API_ROOT_URL + /:id
-        response = await axios.put(`${API_ROOT_URL}/${editingVoucherId}`, voucherDataToSave);
+        response = await axios.put(
+          `${API_ROOT_URL}/vouchers/${editingVoucherId}`,
+          voucherDataToSave
+        );
       } else {
-        // Create new voucher: uses API_ROOT_URL (root of the router)
-        response = await axios.post(API_ROOT_URL, voucherDataToSave);
+        response = await axios.post(`${API_ROOT_URL}/vouchers`, voucherDataToSave);
       }
 
-      console.log('API Operation Success:', response.data);
-      const messageBox = document.createElement('div');
-      messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity50 flex items-center justify-center z-50';
+      console.log("API Operation Success:", response.data);
+      const messageBox = document.createElement("div");
+      messageBox.className =
+        "fixed inset-0 bg-gray-600 bg-opacity50 flex items-center justify-center z-50";
       messageBox.innerHTML = `
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-          <p class="text-xl font-semibold mb-4">Voucher ${editingVoucherId ? 'updated' : 'submitted'} successfully!</p>
+          <p class="text-xl font-semibold mb-4">Voucher ${
+            editingVoucherId ? "updated" : "submitted"
+          } successfully!</p>
           <button id="closeMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
         </div>
       `;
       document.body.appendChild(messageBox);
-      document.getElementById('closeMessageBox').onclick = () => {
+      document.getElementById("closeMessageBox").onclick = () => {
         document.body.removeChild(messageBox);
-        resetFormData(); // Reset form after successful submission/update
-        setViewMode('submitted'); // Go back to submitted list after save
+        resetFormData();
+        setViewMode("submitted");
       };
     } catch (error) {
-      console.error('API Operation Error:', error);
-      const messageBox = document.createElement('div');
-      messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+      console.error("API Operation Error:", error);
+      const messageBox = document.createElement("div");
+      messageBox.className =
+        "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
       messageBox.innerHTML = `
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-          <p class="text-xl font-semibold mb-4">Failed to ${editingVoucherId ? 'update' : 'submit'} voucher. Error: ${error.response?.data?.error || error.message}</p>
+          <p class="text-xl font-semibold mb-4">Failed to ${
+            editingVoucherId ? "update" : "submit"
+          } voucher. Error: ${error.response?.data?.error || error.message}</p>
           <button id="closeErrorMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
         </div>
       `;
       document.body.appendChild(messageBox);
-      document.getElementById('closeErrorMessageBox').onclick = () => {
+      document.getElementById("closeErrorMessageBox").onclick = () => {
         document.body.removeChild(messageBox);
       };
     }
@@ -1015,8 +1163,16 @@ function MainComponent() {
   // Function to initiate printing from either form or submitted list
   const handlePrintInitiate = (voucherDataToPrint) => {
     setCurrentVoucherToPrint(voucherDataToPrint);
-    setViewMode('print'); // Switch to print view
-    // Use setTimeout to allow React to render the print view before printing
+    setViewMode("print");
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
+  // Function to initiate printing ALL vouchers
+  const handlePrintAllInitiate = (vouchersToPrint) => {
+    setAllVouchersToPrint(vouchersToPrint);
+    setViewMode("allPrint");
     setTimeout(() => {
       window.print();
     }, 100);
@@ -1024,7 +1180,6 @@ function MainComponent() {
 
   // Function to initiate editing a voucher
   const handleEditInitiate = (voucherToEdit) => {
-    // Populate formData with the voucher data
     const prepareValueForInput = (value, options) => {
       const optionExists = options.includes(value);
       if (optionExists) {
@@ -1040,59 +1195,69 @@ function MainComponent() {
       name: prepareValueForInput(voucherToEdit.name, nameOptions),
       paidTo: prepareValueForInput(voucherToEdit.paidTo, paidToOptions),
       debit: prepareValueForInput(voucherToEdit.debit, debitOptions),
-      onAccountOf: prepareValueForInput(voucherToEdit.onAccountOf, onAccountOfOptions),
-      // Ensure particulars is an array, even if empty or single item
-      particulars: voucherToEdit.particulars && voucherToEdit.particulars.length > 0
-        ? voucherToEdit.particulars.map(item => ({
-            ...item,
-            rs: String(item.rs), // Ensure rs and ps are strings for input fields
-            ps: String(item.ps)
-          }))
-        : [{ description: "", rs: "", ps: "" }],
+      onAccountOf: prepareValueForInput(
+        voucherToEdit.onAccountOf,
+        onAccountOfOptions
+      ),
+      particulars:
+        voucherToEdit.particulars && voucherToEdit.particulars.length > 0
+          ? voucherToEdit.particulars.map((item) => ({
+              ...item,
+              rs: String(item.rs),
+              ps: String(item.ps),
+            }))
+          : [{ description: "", rs: "", ps: "" }],
     });
-    setEditingVoucherId(voucherToEdit._id); // Changed to voucherToEdit._id
-    setViewMode('form'); // Switch to form view
+    setEditingVoucherId(voucherToEdit._id);
+    setViewMode("form");
   };
 
-  // Function to go back from print view
+  // Function to go back from print view (single voucher)
   const handleBackFromPrint = () => {
     setCurrentVoucherToPrint(null);
-    // Go back to the previous view (either 'form' or 'submitted')
-    setViewMode(prevMode => prevMode === 'submitted' ? 'submitted' : 'form');
+    setViewMode("submitted");
+  };
+
+  // Function to go back from print all view
+  const handleBackFromPrintAll = () => {
+    setAllVouchersToPrint(null);
+    setViewMode("submitted");
   };
 
   // Function to go back to form from submitted list
   const handleBackToFormFromSubmitted = () => {
-    resetFormData(); // Reset form when navigating back to it
-    setViewMode('form');
-  };
-
-
-  // Export all submitted vouchers to Excel (CSV format)
-  const exportToExcel = () => {
-    const messageBox = document.createElement('div');
-    messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-    messageBox.innerHTML = `
-      <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-        <p class="text-xl font-semibold mb-4">Export functionality is now on the "Submitted Vouchers" page.</p>
-        <button id="closeMessageBox" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">OK</button>
-      </div>
-    `;
-    document.body.appendChild(messageBox);
-    document.getElementById('closeMessageBox').onclick = () => {
-    document.body.removeChild(messageBox);
-    };
+    resetFormData();
+    setViewMode("form");
   };
 
   // Conditional Rendering based on viewMode
-  if (viewMode === 'print') {
-    return <PrintVoucherComponent voucherData={currentVoucherToPrint} onBack={handleBackFromPrint} />;
+  if (viewMode === "print") {
+    return (
+      <PrintVoucherComponent
+        voucherData={currentVoucherToPrint}
+        onBack={handleBackFromPrint}
+      />
+    );
   }
 
-  if (viewMode === 'submitted') {
-    // Pass PrintVoucherComponent as a prop to SubmittedVouchersPage if it needs to render it
-    // Or, as done here, directly render SubmittedVouchersPage which has its own logic
-    return <SubmittedVouchersPage onPrintVoucher={handlePrintInitiate} onBackToForm={handleBackToFormFromSubmitted} onEditVoucher={handleEditInitiate} />;
+  if (viewMode === "allPrint") {
+    return (
+      <PrintAllVouchersComponent
+        vouchers={allVouchersToPrint}
+        onBack={handleBackFromPrintAll}
+      />
+    );
+  }
+
+  if (viewMode === "submitted") {
+    return (
+      <SubmittedVouchersPage
+        onPrintVoucher={handlePrintInitiate}
+        onBackToForm={handleBackToFormFromSubmitted}
+        onEditVoucher={handleEditInitiate}
+        onPrintAllVouchers={handlePrintAllInitiate}
+      />
+    );
   }
 
   // Default view: form
@@ -1105,7 +1270,7 @@ function MainComponent() {
           </h1>
           <div className="flex space-x-3">
             <button
-              onClick={() => setViewMode('submitted')}
+              onClick={() => setViewMode("submitted")}
               className="bg-purple-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
             >
               <svg
@@ -1127,13 +1292,14 @@ function MainComponent() {
           </div>
         </div>
 
-       
-
         <form className="space-y-7">
           {/* Basic Information Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Name
               </label>
               <select
@@ -1166,7 +1332,10 @@ function MainComponent() {
               )}
             </div>
             <div>
-              <label htmlFor="voucherNo" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="voucherNo"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Voucher No.
               </label>
               <input
@@ -1178,7 +1347,10 @@ function MainComponent() {
               />
             </div>
             <div>
-              <label htmlFor="date" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="date"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Date
               </label>
               <input
@@ -1192,7 +1364,10 @@ function MainComponent() {
           </div>
 
           <div>
-            <label htmlFor="paidTo" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="paidTo"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
               Paid To
             </label>
             <select
@@ -1226,7 +1401,10 @@ function MainComponent() {
           </div>
 
           <div>
-            <label htmlFor="debit" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="debit"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
               Debit
             </label>
             <select
@@ -1260,7 +1438,10 @@ function MainComponent() {
           </div>
 
           <div>
-            <label htmlFor="onAccountOf" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="onAccountOf"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
               On A/C Of
             </label>
             <select
@@ -1286,7 +1467,10 @@ function MainComponent() {
                     : ""
                 }
                 onChange={(e) =>
-                  handleInputChange("onAccountOf", `Manual Entry:${e.target.value}`)
+                  handleInputChange(
+                    "onAccountOf",
+                    `Manual Entry:${e.target.value}`
+                  )
                 }
                 className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -1389,7 +1573,9 @@ function MainComponent() {
 
             <div className="mt-5 p-4 bg-blue-50 rounded-lg shadow-inner border border-blue-200">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-gray-800 text-lg">Total Amount:</span>
+                <span className="font-bold text-gray-800 text-lg">
+                  Total Amount:
+                </span>
                 <span className="text-2xl font-extrabold text-blue-700">
                   ₹{calculateTotal().toFixed(2)}
                 </span>
@@ -1404,14 +1590,16 @@ function MainComponent() {
           {/* Authorization Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="preparedBy" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="preparedBy"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Prepared By
               </label>
               <input
                 type="text"
                 id="preparedBy"
-                value="MADHUR JI"
-                // value={formData.preparedBy}
+                value={formData.preparedBy}
                 onChange={(e) =>
                   handleInputChange("preparedBy", e.target.value)
                 }
@@ -1419,7 +1607,10 @@ function MainComponent() {
               />
             </div>
             <div>
-              <label htmlFor="authorizedByL1" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="authorizedByL1"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Authorized By L1
               </label>
               <input
@@ -1433,7 +1624,10 @@ function MainComponent() {
               />
             </div>
             <div>
-              <label htmlFor="authorizedByL2" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="authorizedByL2"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Authorized By L2
               </label>
               <input
@@ -1469,7 +1663,7 @@ function MainComponent() {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 ></path>
               </svg>
-              {editingVoucherId ? 'Update Voucher' : 'Submit Voucher'}
+              {editingVoucherId ? "Update Voucher" : "Submit Voucher"}
             </button>
           </div>
         </form>
@@ -1477,6 +1671,5 @@ function MainComponent() {
     </div>
   );
 }
-
 
 export default MainComponent;
