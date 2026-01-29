@@ -336,6 +336,7 @@ function SubmittedVouchersPage({
   onBackToForm,
   onEditVoucher,
   onPrintAllVouchers,
+  onExportExcel,
 }) {
   const [submittedVouchers, setSubmittedVouchers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -644,7 +645,7 @@ function SubmittedVouchersPage({
               New Voucher
             </button>
             <button
-              onClick={handleExportExcel}
+              onClick={onExportExcel}
               className="bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1296,6 +1297,7 @@ function MainComponent() {
         onBackToForm={handleBackToFormFromSubmitted}
         onEditVoucher={handleEditInitiate}
         onPrintAllVouchers={handlePrintAllInitiate}
+        onExportExcel={handleExportExcel}
       />
     );
   }
