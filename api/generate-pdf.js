@@ -119,7 +119,7 @@ export default async function handler(req, res) {
       if (voucher.teamLeaderName) {
         onAccountOfDisplay += ` (${voucher.teamLeaderName})`;
       }
-      if (voucher.vehicleNumber && (voucher.onAccountOf || '').includes('Fuel Exp.')) {
+      if (voucher.vehicleNumber && voucher.onAccountOf && voucher.onAccountOf.includes('Fuel Exp.')) {
         onAccountOfDisplay += ` (${voucher.vehicleNumber})`;
       }
       

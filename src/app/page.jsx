@@ -75,7 +75,9 @@ function VoucherDisplayComponent({ voucherData }) {
         <div className="flex items-center">
           <span className="text-gray-800 font-semibold mr-2">ON A/C OF</span>
           <div className="border-b border-black flex-1 pb-1">
-            {voucherData.onAccountOf}{voucherData.teamLeaderName ? ` (${voucherData.teamLeaderName})` : ''}{voucherData.vehicleNumber && voucherData.onAccountOf.includes('Fuel Exp.') ? ` (${voucherData.vehicleNumber})` : ''}
+            {voucherData.onAccountOf}
+            {voucherData.teamLeaderName && ` (${voucherData.teamLeaderName})`}
+            {voucherData.vehicleNumber && voucherData.onAccountOf && voucherData.onAccountOf.includes('Fuel Exp.') && ` (${voucherData.vehicleNumber})`}
           </div>
         </div>
       </div>
@@ -641,6 +643,15 @@ function SubmittedVouchersPage({
             >
               New Voucher
             </button>
+            <button
+              onClick={handleExportExcel}
+              className="bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Export to Excel
+            </button>
           </div>
         </div>
 
@@ -698,7 +709,9 @@ function SubmittedVouchersPage({
                       {voucher.debit}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {voucher.onAccountOf}{voucher.teamLeaderName ? ` (${voucher.teamLeaderName})` : ''}{voucher.vehicleNumber && voucher.onAccountOf.includes('Fuel Exp.') ? ` (${voucher.vehicleNumber})` : ''}
+                      {voucher.onAccountOf}
+                      {voucher.teamLeaderName && ` (${voucher.teamLeaderName})`}
+                      {voucher.vehicleNumber && voucher.onAccountOf && voucher.onAccountOf.includes('Fuel Exp.') && ` (${voucher.vehicleNumber})`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                       ₹{voucher.totalAmount?.toFixed(2) || "0.00"}
@@ -1178,6 +1191,31 @@ function MainComponent() {
     setTimeout(() => {
       window.print();
     }, 100);
+  };
+
+  // Function to export vouchers to Excel
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetch(`${API_ROOT_URL}/generate-excel`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vouchers-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Failed to export vouchers to Excel. Please try again.');
+    }
   };
 
   // Function to initiate editing a voucher
