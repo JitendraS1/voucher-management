@@ -18,6 +18,8 @@ const voucherSchema = new mongoose.Schema({
   paidTo: String,
   debit: String,
   onAccountOf: String,
+  teamLeaderName: String,
+  vehicleNumber: String,
   particulars: [{
     description: String,
     rs: String,

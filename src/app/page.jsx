@@ -75,7 +75,7 @@ function VoucherDisplayComponent({ voucherData }) {
         <div className="flex items-center">
           <span className="text-gray-800 font-semibold mr-2">ON A/C OF</span>
           <div className="border-b border-black flex-1 pb-1">
-            {voucherData.onAccountOf}
+            {voucherData.onAccountOf}{voucherData.teamLeaderName ? ` (${voucherData.teamLeaderName})` : ''}{voucherData.vehicleNumber && voucherData.onAccountOf.includes('Fuel Exp.') ? ` (${voucherData.vehicleNumber})` : ''}
           </div>
         </div>
       </div>
@@ -698,7 +698,7 @@ function SubmittedVouchersPage({
                       {voucher.debit}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {voucher.onAccountOf}
+                      {voucher.onAccountOf}{voucher.teamLeaderName ? ` (${voucher.teamLeaderName})` : ''}{voucher.vehicleNumber && voucher.onAccountOf.includes('Fuel Exp.') ? ` (${voucher.vehicleNumber})` : ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                       ₹{voucher.totalAmount?.toFixed(2) || "0.00"}
@@ -740,6 +740,8 @@ function MainComponent() {
     paidTo: "",
     debit: "",
     onAccountOf: "",
+    teamLeaderName: "",
+    vehicleNumber: "",
     voucherNo: "",
     date: "",
     particulars: [{ description: "", rs: "", ps: "" }],
@@ -1475,6 +1477,40 @@ function MainComponent() {
                 className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-blue-500 focus:border-blue-500"
               />
             )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="teamLeaderName"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
+              Team Leader Name
+            </label>
+            <input
+              type="text"
+              id="teamLeaderName"
+              value={formData.teamLeaderName}
+              onChange={(e) => handleInputChange("teamLeaderName", e.target.value)}
+              placeholder="Enter team leader name"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="vehicleNumber"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
+              Vehicle Number
+            </label>
+            <input
+              type="text"
+              id="vehicleNumber"
+              value={formData.vehicleNumber}
+              onChange={(e) => handleInputChange("vehicleNumber", e.target.value)}
+              placeholder="Enter vehicle number"
+              className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+            />
           </div>
 
           {/* Particulars Section */}

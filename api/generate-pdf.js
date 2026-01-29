@@ -19,6 +19,8 @@ const voucherSchema = new mongoose.Schema({
   paidTo: String,
   debit: String,
   onAccountOf: String,
+  teamLeaderName: String,
+  vehicleNumber: String,
   particulars: [{
     description: String,
     rs: String,
@@ -111,7 +113,17 @@ export default async function handler(req, res) {
 
       // Row 3
       doc.text(`Debit: ${voucher.debit || ''}`, 50, 160);
-      doc.text(`On A/C Of: ${voucher.onAccountOf || ''}`, 300, 160);
+      
+      // On A/C Of with team leader name and vehicle number if applicable
+      let onAccountOfDisplay = voucher.onAccountOf || '';
+      if (voucher.teamLeaderName) {
+        onAccountOfDisplay += ` (${voucher.teamLeaderName})`;
+      }
+      if (voucher.vehicleNumber && (voucher.onAccountOf || '').includes('Fuel Exp.')) {
+        onAccountOfDisplay += ` (${voucher.vehicleNumber})`;
+      }
+      
+      doc.text(`On A/C Of: ${onAccountOfDisplay}`, 300, 160);
 
       // Particulars table header
       const tableTop = 190;
