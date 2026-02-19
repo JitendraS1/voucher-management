@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher Management System - Deployment Instructions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background-color: #f4f4f4;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voucher Management System</h1>
+    <h2>Deployment Instructions</h2>
+    
+    <p>This application consists of two parts:</p>
+    <ol>
+        <li><strong>Frontend</strong>: Static HTML/CSS/JS files (in the <span class="highlight">out</span> directory)</li>
+        <li><strong>Backend</strong>: Node.js API server (in the <span class="highlight">mysql-backend</span> directory)</li>
+    </ol>
+    
+    <div class="step">
+        <h3>Step 1: Deploy Backend Server</h3>
+        <p>Upload the <span class="highlight">mysql-backend</span> folder to your hosting provider and set it up as a Node.js application:</p>
+        <ul>
+            <li>Create a MySQL database</li>
+            <li>Update <span class="highlight">mysql-backend/.env</span> with your database credentials</li>
+            <li>Run <code>npm install</code> in the mysql-backend directory</li>
+            <li>Start the server with <code>node index.js</code></li>
+        </ul>
+    </div>
+    
+    <div class="step">
+        <h3>Step 2: Deploy Frontend Files</h3>
+        <p>Upload all files from the <span class="highlight">out</span> directory to your web server's document root (e.g., public_html)</p>
+    </div>
+    
+    <div class="step">
+        <h3>Step 3: Configure API Connection</h3>
+        <p>Update the frontend to connect to your backend server:</p>
+        <ul>
+            <li>If your hosting supports environment variables: set <code>NEXT_PUBLIC_API_BASE_URL</code> to your backend URL</li>
+            <li>Otherwise, update the API URL in the built frontend files to point to your backend server</li>
+        </ul>
+    </div>
+    
+    <h3>Important Files/Folders:</h3>
+    <ul>
+        <li><span class="highlight">out/</span> - Frontend static files to upload to public_html</li>
+        <li><span class="highlight">mysql-backend/</span> - Backend API server</li>
+        <li><span class="highlight">DEPLOYMENT_GUIDE.md</span> - Detailed deployment instructions</li>
+        <li><span class="highlight">mysql-backend/setup-database.sql</span> - SQL script to create database tables</li>
+    </ul>
+    
+    <p>For detailed instructions, please refer to the <span class="highlight">DEPLOYMENT_GUIDE.md</span> file.</p>
+</body>
+</html>

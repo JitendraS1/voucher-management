@@ -70,8 +70,12 @@ mysql-backend/package-lock.json
 
 # Next.js
 .next/
-out/
 build/
+
+# Static export is now in out/ but we'll keep it for reference
+# The out/ directory contains the built static site
+# Uncomment the next line if you don't want to track it in git
+# out/
 
 # Database files
 *.sqlite

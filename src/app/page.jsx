@@ -3,6 +3,7 @@ import React from "react";
 import axios from "axios";
 
 // Define the base URL for your MySQL API
+// Update this to your actual backend URL when deploying
 const API_ROOT_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5003";
 
